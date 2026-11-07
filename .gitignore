@@ -1,0 +1,30 @@
+# Packet captures
+*.pcap
+*.pcapng
+
+# Secrets and credentials
+.env
+.env.*
+credentials
+credentials.*
+secrets
+secrets.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+
+# Temporary and operating system files
+*.tmp
+*.temp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Keep empty directories tracked
+!.gitkeep
