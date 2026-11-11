@@ -41,11 +41,6 @@ Mô tả thứ tự thao tác: File capture được mở bằng Wireshark và c
 | TCP/TLS | `tcp.stream == 342`; kiểm tra IP/port, flags, Seq/Ack và thông điệp TLS |
 | ICMP | `icmp && ip.addr == 1.1.1.1`; đối chiếu Identifier, Sequence Number và hướng truyền |
 
-Bằng chứng DNS: ![DNS query và response — frames 28606, 28607](../../labs/01-normal-traffic/screenshots/dns-query-response.png)
-Bằng chứng TCP: ![TCP three-way handshake — frames 28966, 28968, 28969](../../labs/01-normal-traffic/screenshots/tcp-three-way-handshake.png)
-Bằng chứng TLS: ![TLS Client Hello và Server Hello — frames 28970, 28972](../../labs/01-normal-traffic/screenshots/tls-handshake.png)
-Bằng chứng ICMP: ![ICMP Echo Request từ máy kiểm thử và Echo Reply từ 1.1.1.1](../../labs/01-normal-traffic/screenshots/icmp-echo-request-reply.png)
-
 ### 3.3. Giới hạn phương pháp
 - Chỉ phân tích các trao đổi được lựa chọn trong khoảng thời gian capture
 - Nội dung HTTPS chưa được giải mã
@@ -59,9 +54,36 @@ Bằng chứng ICMP: ![ICMP Echo Request từ máy kiểm thử và Echo Reply t
 ### 4.4. ICMP
 
 ## 5. Timeline
-[Thời gian, sự kiện, bằng chứng]
 
 ## 6. Kết luận và giới hạn
 
 ## 7. Phụ lục
-[Ảnh, truy vấn, tham chiếu bằng chứng]
+
+### 7.1. Danh mục bằng chứng
+
+Các số frame dưới đây tham chiếu đến file gốc `normal-traffic.pcapng`.
+
+| Mã | Bằng chứng | Frame liên quan | Nội dung tra cứu |
+|---|---|---|---|
+| E01 | [DNS query/response](../../labs/01-normal-traffic/screenshots/dns-query-response.png) | A: 28606–28607 và 28963–28965; AAAA: 28608–28609 và 28964–28967 | Các cặp truy vấn/phản hồi cho `example.com`. Với các cặp không liền nhau, chỉ tham chiếu hai frame ở hai đầu, không phải toàn bộ khoảng. |
+| E02 | [TCP three-way handshake](../../labs/01-normal-traffic/screenshots/tcp-three-way-handshake.png) | 28966, 28968, 28969 | SYN, SYN-ACK và ACK giữa `192.168.1.39:53299` và `172.66.147.243:443`, thuộc TCP stream 342. |
+| E03 | [TLS Client Hello/Server Hello](../../labs/01-normal-traffic/screenshots/tls-handshake.png) | 28970, 28972 | Client Hello có SNI `example.com` và Server Hello trong TCP stream 342. |
+| E04 | [ICMP Echo Request/Reply](../../labs/01-normal-traffic/screenshots/icmp-echo-request-reply.png) | 29120–29121; 29127–29128; 29143–29144; 29150–29151 | Bốn cặp Echo Request từ `192.168.1.39` đến `1.1.1.1` và Echo Reply theo chiều ngược lại. |
+
+### 7.2. Display filter phục vụ đối chiếu
+
+| Mục đích | Display filter |
+|---|---|
+| DNS cho tên miền kiểm thử | `dns.qry.name == "example.com"` |
+| DNS loại A | `dns.qry.name == "example.com" && dns.qry.type == 1` |
+| DNS loại AAAA | `dns.qry.name == "example.com" && dns.qry.type == 28` |
+| Toàn bộ kết nối TCP được phân tích | `tcp.stream == 342` |
+| TLS Client Hello trong kết nối | `tcp.stream == 342 && tls.handshake.type == 1` |
+| TLS Server Hello trong kết nối | `tcp.stream == 342 && tls.handshake.type == 2` |
+| ICMP giữa máy kiểm thử và đích ping | `icmp && ip.addr == 192.168.1.39 && ip.addr == 1.1.1.1` |
+
+### 7.3. Lưu ý khi tra cứu
+
+- Stream index và frame number được sử dụng trong phụ lục là các giá trị trong file gốc; cần kiểm tra lại nếu xuất một file capture con.
+- Timestamp hiển thị trong các ảnh bằng chứng là UTC. Khi đối chiếu với thời gian UTC+07:00, cộng 7 giờ; frame number không thay đổi.
+- Các ảnh chỉ thể hiện những packet được lựa chọn. Sử dụng file capture gốc và Packet Details để kiểm tra đầy đủ các trường liên quan.
