@@ -18,6 +18,7 @@
 | Khoảng thời gian được ghi nhận | `11 phút 03 giây` |
 | Tổng số packet trong file | 29 536 |
 | IPv4 máy thực hiện lab | 192.168.1.39 |
+
 ## 3. Phạm vi và phương pháp
 
 ### 3.1. Phạm vi phân tích
@@ -49,6 +50,58 @@ Mô tả thứ tự thao tác: File capture được mở bằng Wireshark và c
 
 ## 4. Kết quả phân tích
 ### 4.1. DNS
+**IPv4**
+| Trường | Giá trị |
+|---|---|
+| DNS Client | `2405:4802:80ca:7d60:34c2:9b65:96b3:f918` |
+| DNS Server | `2405:4802:80ca:7d60::1` |
+| Query Name | `example.com` |
+| Query Type | `A`|
+| Transaction ID | `0x0004` |
+| Response Code | `No error (0)` |
+| Answers | `172.66.147.243`, `104.20.23.154` |
+| Evidence | `Frame query: 28606`, `Frame response: 28607` |
+
+**IPv6**
+| Trường | Giá trị |
+|---|---|
+| DNS Client | `2405:4802:80ca:7d60:34c2:9b65:96b3:f918` |
+| DNS Server | `2405:4802:80ca:7d60::1` |
+| Query Name | `example.com` |
+| Query Type | `AAAA`|
+| Transaction ID | `0x0005` |
+| Response Code | `No error (0)` |
+| Answers | `2606:4700:10::ac42:93f3`, `2606:4700:10::6814:179a` |
+| Evidence | `Frame query: 28608`, `Frame response: 28609` |
+
+**Câu hỏi và trả lời**
+
+1. **Những trường nào cho thấy query và response tương ứng?**
+
+   Đối chiếu Transaction ID, Query Name, Query Type và địa chỉ/port của hai endpoint theo chiều ngược nhau, kết hợp thời gian xuất hiện. Cột Info hỗ trợ đọc nhanh nội dung packet.
+
+2. **Truy vấn A và AAAA trả về loại địa chỉ nào?**
+
+   Bản ghi A chứa địa chỉ IPv4; bản ghi AAAA chứa địa chỉ IPv6. Trong các phản hồi đang phân tích, cả hai loại truy vấn đều nhận được địa chỉ tương ứng.
+
+3. **Mã NOERROR cùng các Answers cho thấy điều gì?**
+
+   Phản hồi có mã `NOERROR (0)`, cho biết DNS server không báo lỗi khi xử lý truy vấn. Phần Answers chứa các bản ghi địa chỉ trả lời cho tên miền được hỏi.
+
+4. **Địa chỉ đích của TCP ở mục tiếp theo có xuất hiện trong Answers không?**
+
+   Có. Địa chỉ đích TCP `172.66.147.243` xuất hiện trong phản hồi A tại frame 28607, cùng với `104.20.23.154`. Kết nối TCP ở stream 342 sử dụng một trong các địa chỉ IPv4 được trả về.
+
+5. **Kết quả DNS chưa chứng minh được điều gì về giao dịch HTTPS?**
+
+   Kết quả DNS chưa chứng minh kết nối TCP hoặc phiên TLS đã được thiết lập, dữ liệu ứng dụng được mã hóa, hay giao dịch HTTPS hoàn tất thành công. Những kết luận này cần bằng chứng từ các bước phân tích TCP, TLS và ứng dụng tương ứng.
+
+**Kết quả phân tích:** DNS client gửi truy vấn A cho `example.com` tại frame 28606 và nhận phản hồi tại frame 28607, cùng Transaction ID `0x0004`. Tương tự, truy vấn AAAA tại frame 28608 có phản hồi tại frame 28609, cùng Transaction ID `0x0005`. Các cặp được đối chiếu thêm bằng endpoint, Query Name và Query Type.
+
+Cả hai phản hồi đều có Response Code `NOERROR (0)`, cho biết DNS server không báo lỗi khi xử lý truy vấn. Phản hồi A chứa hai địa chỉ IPv4 `172.66.147.243` và `104.20.23.154`; phản hồi AAAA chứa hai địa chỉ IPv6 `2606:4700:10::ac42:93f3` và `2606:4700:10::6814:179a`. Kết nối TCP được phân tích tiếp theo ở stream 342 sử dụng địa chỉ đích IPv4 `172.66.147.243`, nằm trong phản hồi A.
+
+**Giới hạn:** Các phản hồi cho thấy client đã nhận được bản ghi địa chỉ cho tên miền được hỏi. Riêng bằng chứng DNS chưa xác nhận kết nối TCP được thiết lập, quá trình thương lượng TLS hoàn tất hoặc giao dịch HTTPS thành công.
+
 ### 4.2. TCP
 ### 4.3. TLS
 ### 4.4. ICMP
