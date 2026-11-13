@@ -103,6 +103,29 @@ Cả hai phản hồi đều có Response Code `NOERROR (0)`, cho biết DNS ser
 **Giới hạn:** Các phản hồi cho thấy client đã nhận được bản ghi địa chỉ cho tên miền được hỏi. Riêng bằng chứng DNS chưa xác nhận kết nối TCP được thiết lập, quá trình thương lượng TLS hoàn tất hoặc giao dịch HTTPS thành công.
 
 ### 4.2. TCP
+
+**Kết nối được phân tích:**
+
+- Client: `192.168.1.39:53299`.
+- Server: `172.66.147.243:443`.
+- TCP Stream index: `342`.
+- Display filter: `tcp.stream == 342`.
+
+**Bằng chứng handshake**
+
+| Frame | Hướng truyền | Flags | Relative Seq | Relative Ack |
+|---|---|---|---|---|
+| 28966 | Client → Server | SYN | 0 | Không áp dụng: cờ ACK chưa bật |
+| 28968 | Server → Client | SYN, ACK | 0 | 1 |
+| 28969 | Client → Server | ACK | 1 | 1 |
+
+**Kết quả phân tích:**
+Client chủ động mở kết nối từ địa chỉ 192.168.1.39 đến Server có địa chỉ 172.66.147.243. Tại frame 28966, quan sát được Client gửi packet có cờ SYN với `Seq = 0` đến Server. Server phản hồi với packet có cờ [SYN, ACK] với `Seq = 0, ACK = 1` tại frame 28968. Cuối cùng Client gửi packet có cờ [ACK] với `Seq = 1, ACK = 1` đến Server tại frame 28969. Ba packet thuộc cùng kết nối vì có cùng `Stream Index = 342`. Chuỗi trao đổi này cho thấy Client và Server đã hoàn thành bắt tay 3 bước (Three-way handshake).
+
+**Giới hạn:** Việc thiết lập kết nối TCP thành công chưa đủ
+để xác nhận quá trình thương lượng TLS hoặc giao dịch HTTPS
+hoàn tất thành công.
+
 ### 4.3. TLS
 ### 4.4. ICMP
 
