@@ -102,6 +102,8 @@ Cả hai phản hồi đều có Response Code `NOERROR (0)`, cho biết DNS ser
 
 **Giới hạn:** Các phản hồi cho thấy client đã nhận được bản ghi địa chỉ cho tên miền được hỏi. Riêng bằng chứng DNS chưa xác nhận kết nối TCP được thiết lập, quá trình thương lượng TLS hoàn tất hoặc giao dịch HTTPS thành công.
 
+**Bằng chứng:** Xem E01 trong mục 7.1.
+
 ### 4.2. TCP
 
 **Kết nối được phân tích:**
@@ -126,7 +128,41 @@ Client chủ động mở kết nối từ địa chỉ 192.168.1.39 đến Serv
 để xác nhận quá trình thương lượng TLS hoặc giao dịch HTTPS
 hoàn tất thành công.
 
+**Bằng chứng:** Xem E02 trong mục 7.1.
+
 ### 4.3. TLS
+| Frame | Handshake protocol | Display filter |
+|---|---|---|
+| 28970 | Client Hello |`tcp.stream == 342 && tls.handshake.type == 1`|
+| 28972 | Server Hello |`tcp.stream == 342 && tls.handshake.type == 2`|
+
+**Bằng chứng handshake**
+| Frame | Handshake protocol| Mục cần mở | Thông tin cụ thể |
+|---|---|---|---|
+| 28970 | Client Hello | Extension: server_name | SNI là `example.com`. Tên miền client gửi trong Client Hello|
+| 28970 | Client Hello | Extension: supported_versions | Các phiên bản TLS client đề xuất lần lượt là: `TLS 1.3, TLS 1.2`|
+| 28972 | Server Hello | Extension: supported_versions | Phiên bản TLS server chọn là: `TLS 1.3`|
+| 28972 | Server Hello | Cipher Suite | Tên và mã của bộ mã server chọn là: `TLS_AES_256_GCM_SHA384 (0x1302)`|
+
+**Kết quả phân tích**
+
+Sau khi bắt tay TCP hoàn tất, client gửi TLS Client Hello tại frame 28970
+trong TCP stream `153`. Thông điệp chứa SNI `example.com` và đề xuất
+các phiên bản TLS 1.3, TLS 1.2.
+
+Server phản hồi bằng Server Hello tại frame 28972 trong cùng stream.
+Trường Supported Versions cho thấy server chọn `TLS 1.3`.
+Trường Cipher Suite cho thấy server chọn `TLS_AES_256_GCM_SHA384 (0x1302)`.
+
+**Giới hạn**
+
+Hai thông điệp Hello cho thấy quá trình thương lượng đã bắt đầu và
+server đã chọn các tham số trên. Để xác nhận bắt tay TLS hoàn tất,
+cần thêm bằng chứng ngoài hai frame này. Nội dung HTTPS chưa được
+giải mã nên chưa xác định được mã trạng thái HTTP từ capture.
+
+**Bằng chứng:** Xem E03 trong mục 7.1.
+
 ### 4.4. ICMP
 
 ## 5. Timeline
