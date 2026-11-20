@@ -165,9 +165,44 @@ giải mã nên chưa xác định được mã trạng thái HTTP từ capture.
 
 ### 4.4. ICMP
 
+| Sequence Number | Identifier | Echo Request | Echo Reply | RTT (ms) |
+|---:|---|---:|---:|---:|
+| 1 | `0x0001` | 29120 | 29121 | 39,95 |
+| 2 | `0x0001` | 29127 | 29128 | 35,08 |
+| 3 | `0x0001` | 29143 | 29144 | 37,56 |
+| 4 | `0x0001` | 29150 | 29151 | 34,35 |
+
+**Kết quả phân tích**
+Máy client có địa chỉ IP `192.168.1.39` gửi Echo Request đến server có địa chỉ IP `1.1.1.1` và quan sát được có tổng cộng 4 gói tin được gửi thành công.
+
+**Bằng chứng**
+Lấy cặp Frame 29120 và 29121 làm ví dụ, client gửi Echo Request đến server. Lúc này, ta sẽ xét đến Identifier và Sequence Number của cả hai Frame và nhận thấy chúng có cùng Indentifier là `1 (0x0001)` và Sequence Number là `1 (0x0001)`
+
+**Nguồn ảnh:** Xem E04 trong mục 7.1
+
+**Kết luận**
+Thực hiện điều tương tự với các gói tin còn lại, ta có thể nhận thấy cả 4/4 Echo Request đều có Echo Reply tương ứng. Kết quả xác nhận `1.1.1.1` đã phản hồi ICMP trong lượt kiểm thử này.
+
 ## 5. Timeline
 
+Các mốc dưới đây lấy từ `normal-traffic.pcapng` ngày **2026-11-10**, theo giờ **UTC+07:00** và làm tròn đến mili giây. Những frame có cùng mốc hiển thị được đọc theo thứ tự frame.
+
+| Thời gian (UTC+07:00) | Frame | Sự kiện | Bằng chứng |
+|---|---|---|---|
+| 21:09:51.116–21:09:51.163 | 28606, 28607, 28608, 28609 | Máy kiểm thử gửi truy vấn A và AAAA cho `example.com`. Cả hai phản hồi chứa bản ghi địa chỉ và có mã `NOERROR (0)`. | E01 |
+| 21:10:19.742 | 28963, 28964 | Máy kiểm thử gửi thêm một lượt truy vấn A và AAAA cho `example.com`. | E01 |
+| 21:10:19.754 | 28965 | Phản hồi A trả về `172.66.147.243` và `104.20.23.154`. | E01 |
+| 21:10:19.769 | 28966 | Máy kiểm thử gửi TCP SYN từ `192.168.1.39:53299` đến `172.66.147.243:443`, mở đầu stream `342`. | E02 |
+| 21:10:19.773 | 28967 | Phản hồi AAAA của lượt thứ hai đến sau TCP SYN. | E01 |
+| 21:10:19.811 | 28968, 28969 | Server gửi SYN-ACK, sau đó máy kiểm thử gửi ACK để hoàn tất bắt tay TCP. | E02 |
+| 21:10:19.814–21:10:19.876 | 28970, 28972 | Client Hello mang SNI `example.com`. Server Hello chọn TLS 1.3 và bộ mã `TLS_AES_256_GCM_SHA384 (0x1302)`. | E03 |
+| 21:10:29.701–21:10:32.767 | 29120, 29121, 29127, 29128, 29143, 29144, 29150, 29151 | Trong lượt ping riêng, máy kiểm thử gửi bốn ICMP Echo Request đến `1.1.1.1` và nhận đủ bốn Echo Reply tương ứng. | E04 |
+
 ## 6. Kết luận và giới hạn
+
+**Kết luận.** Trong các trao đổi được phân tích, máy kiểm thử nhận được bản ghi A và AAAA cho `example.com`. Một địa chỉ trong phản hồi A, `172.66.147.243`, trùng với IP đích của kết nối TCP đến cổng 443. Chuỗi SYN, SYN-ACK và ACK xác nhận bắt tay TCP hoàn tất trong stream `342`. Trong cùng stream, Client Hello chứa SNI `example.com` và Server Hello cho thấy máy chủ chọn TLS 1.3 cùng bộ mã `TLS_AES_256_GCM_SHA384 (0x1302)`. Ở lượt kiểm thử ICMP riêng, cả **4/4** Echo Request đều có Echo Reply tương ứng, với RTT quan sát được từ **34,35 đến 39,95 ms**.
+
+**Giới hạn.** Hai thông điệp Hello cho thấy các tham số được đề xuất và được chọn. Để xác nhận bắt tay TLS hoàn tất, cần thêm bằng chứng ngoài hai thông điệp này. Nội dung HTTPS chưa được giải mã, vì vậy capture chưa cho biết mã trạng thái HTTP hoặc kết quả giao dịch. Phân tích chỉ bao gồm các trao đổi được chọn tại interface Wi-Fi của máy kiểm thử. Bốn lượt ping phản ánh khả năng phản hồi ICMP của đích tại thời điểm đo và chưa đủ để đánh giá chất lượng mạng dài hạn.
 
 ## 7. Phụ lục
 
