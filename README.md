@@ -56,7 +56,6 @@ soc-network-traffic-analysis/
     └── .gitkeep
 ```
 
-- [`docs/`](docs/): reserved for general project documentation.
 - [`labs/`](labs/): case study workspaces; each has directories for captures, screenshots, and reports.
 - [`filters/`](filters/): reserved for reusable Wireshark filters.
 - [`scripts/`](scripts/): reserved for future supporting scripts; none are currently included.
