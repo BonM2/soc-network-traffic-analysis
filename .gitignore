@@ -1,6 +1,7 @@
 # Packet captures
 *.pcap
 *.pcapng
+*.cap
 
 # Secrets and credentials
 .env
