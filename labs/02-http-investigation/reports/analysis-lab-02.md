@@ -85,5 +85,5 @@ Kết luận chỉ áp dụng cho giao dịch đã chọn trong capture mẫu. M
 
 | Mã | Bằng chứng | Nguồn |
 |---|---|---|
-| E01 | [Ảnh Packet Details của HTTP request] | [D:\soc-network-traffic-analysis\labs\02-http-investigation\screenshots\packet-detail-http-request.png] |
-| E02 | [Ảnh Packet Details của HTTP response] | [D:\soc-network-traffic-analysis\labs\02-http-investigation\screenshots\packet-detail-http-response.png] |
+| E01 | Ảnh Packet Details của HTTP request | [packet-detail-http-request.png](../screenshots/packet-detail-http-request.png) |
+| E02 | Ảnh Packet Details của HTTP response | [packet-detail-http-response.png](../screenshots/packet-detail-http-response.png) |
